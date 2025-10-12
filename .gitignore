@@ -1,0 +1,7 @@
+**/__pycache__
+.pyteste_cache
+.env
+venv
+.venv
+docker-clean
+.vscode

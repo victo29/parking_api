@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:14.4-bullseye
+    container_name: parking_db
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+      - ./ini/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+
+    environment:
+      - POSTGRES_USER={{DB_USER}}
+      - POSTGRES_PASSWORD={{DB_PASSWORD}}
+      - POSTGRES_DB={{DB_NAME}}
+    ports:
+      - 5432:5432
+  api:
+    build: .
+    container_name: parking_api
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    restart: always
+
+volumes:
+  postgres_data:
