@@ -9,7 +9,7 @@ from src.infra.db.entities.registry import Registry as RegistryEntity
 class RegistryRepository(ABC):
 
     @abstractmethod
-    def insert_registry(self, plate_car:str, proprietor:str, model:str|None, entry_time: datetime):
+    def insert_registry(self, car_plate:str, proprietor:str, model:str|None, entry_time: datetime):
         pass
 
     @abstractmethod

@@ -7,7 +7,7 @@ class Registry(Base):
     __tablename__ = "registry"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    plate_car = Column(String(7), nullable=False)
+    car_plate = Column(String(7), nullable=False)
     proprietor = Column(String(255), nullable=False)
     model = Column(String(255))
     entry_time = Column(TIMESTAMP)
@@ -18,7 +18,7 @@ class Registry(Base):
     def to_dict(self):
         return {
             'id': self.id,
-            'plate_car': self.plate_car,
+            'car_plate': self.car_plate,
             'proprietor': self.proprietor,
             'model': self.model,
             'entry_time': ((self.entry_time - timedelta(hours=3)).strftime("%Y-%m-%d %H:%M:%S")) if self.entry_time else None,

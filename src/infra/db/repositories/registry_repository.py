@@ -11,12 +11,12 @@ from src.errors.types.not_found_error import NotFoundError
 class RegistryRepository(IRegistryRepository):
 
 
-    def insert_registry(self, plate_car:str, proprietor:str, model:str|None, entry_time: datetime):
+    def insert_registry(self, car_plate:str, proprietor:str, model:str|None, entry_time: datetime):
         with DBconnectionHandler() as database:
             try:
 
                 new_registry = RegistryEntity(
-                    plate_car = plate_car,
+                    car_plate = car_plate,
                     proprietor = proprietor,
                     model = model,
                     entry_time = entry_time
@@ -65,9 +65,9 @@ class RegistryRepository(IRegistryRepository):
                 if not existing:
                     raise NotFoundError(f"Registry with id {id} not founded")
 
-                existing.plate_car = registry.plate_car
-                existing.proprietor = registry.proprietor
-                existing.model = registry.model
+                existing.car_plate = registry.car_plate if registry.car_plate else existing.car_plate
+                existing.proprietor = registry.proprietor if registry.proprietor else existing.proprietor
+                existing.model = registry.model if registry.model else existing.model
 
                 database.session.commit()
 
@@ -98,7 +98,7 @@ class RegistryRepository(IRegistryRepository):
     def get_registries_specifics(self, start_date: Optional[date], end_date: Optional[date], plate: str) -> List[RegistryEntity]:
         with DBconnectionHandler() as database:
             try:
-                query = database.session.query(RegistryEntity).filter(RegistryEntity.plate_car == plate)
+                query = database.session.query(RegistryEntity).filter(RegistryEntity.car_plate == plate)
 
                 if start_date and end_date:
                     start_datetime = self.__transform_date(start_date, 'start')
@@ -135,7 +135,7 @@ class RegistryRepository(IRegistryRepository):
             try:
                 registry = (
                     database.session.query(RegistryEntity)
-                    .filter(RegistryEntity.plate_car == plate)
+                    .filter(RegistryEntity.car_plate == plate)
                     .filter(RegistryEntity.exit_time.is_(None))
                     .first()
                 )

@@ -6,10 +6,8 @@ from src.domains.use_cases.registries_manager import RegistriesManager as IRegis
 from src.infra.db.repositories.interfaces.registry_repository import RegistryRepository
 from src.infra.db.repositories.interfaces.system_config_repository import SystemConfigRepository
 from src.domains.models.registry import Registry
-from src.errors.types.not_found_error import NotFoundError
-from src.errors.types.existing_registry import ExistingRegistry
 from src.decorator.handle_exceptions import Exceptions
-from src.errors.types.date_error import DateError
+from src.errors.types import NotFoundConfig, NotFoundError, ExistingRegistry, DateError, ValueError
 
 class RegistriesManager(IRegistriesManager):
 
@@ -21,8 +19,8 @@ class RegistriesManager(IRegistriesManager):
     def insert_registry(self, registry: Registry):
 
         entry_time = datetime.now(timezone.utc)
-        plate_car = self.__validate_plate_car(registry.plate_car)
-        registry_open = self.__registry_repository.get_open_registries_by_plate(plate_car)
+        car_plate = self.__validate_car_plate(registry.car_plate)
+        registry_open = self.__registry_repository.get_open_registries_by_plate(car_plate)
         proprietor = self.__validate_name_proprietor(registry.proprietor)
         model = self.__validate_model(registry.model)
 
@@ -32,22 +30,22 @@ class RegistriesManager(IRegistriesManager):
         self.__registry_repository.insert_registry(
             entry_time = entry_time,
             proprietor =proprietor,
-            plate_car = plate_car,
+            car_plate = car_plate,
             model = model
         )
 
         return {"status": 201, "data": {'success':"registry added successfully"}}
 
     @Exceptions
-    def register_exit(self, plate_car: str):
+    def register_exit(self, car_plate: str):
 
         exit_time = datetime.now(timezone.utc)
-        plate_car = self.__validate_plate_car(plate_car)
-        registry = self.__registry_repository.get_open_registries_by_plate(plate_car)
+        car_plate = self.__validate_car_plate(car_plate)
+        registry = self.__registry_repository.get_open_registries_by_plate(car_plate)
 
         if not registry:
-            raise NotFoundError(f"{plate_car} does not have an open registration")
-
+            print(registry)
+            raise NotFoundError(f"{car_plate} does not have an open registration")
         registry.exit_time = exit_time
         registry.value = self.__calculate_payment(registry.entry_time, exit_time)
 
@@ -80,7 +78,7 @@ class RegistriesManager(IRegistriesManager):
     @Exceptions
     def update_registry(self, id: int, registry: Registry):
 
-        registry.plate_car = self.__validate_plate_car(registry.plate_car)
+        registry.car_plate = self.__validate_car_plate(registry.car_plate)
         registry.proprietor = self.__validate_name_proprietor(registry.proprietor)
         registry.model = self.__validate_model(registry.model)
 
@@ -93,8 +91,7 @@ class RegistriesManager(IRegistriesManager):
 
 
         start_date, end_date = self.__convert_datas(start_date, end_date)
-        if start_date >= end_date:
-                    raise DateError('start_date must be earlier than end_date')
+        self.__validate_date_range(start_date,end_date)
 
         regristries = self.__registry_repository.get_registries_by_period(start_date, end_date)
         regristries = [registry.to_dict() for registry  in regristries]
@@ -112,10 +109,9 @@ class RegistriesManager(IRegistriesManager):
     def get_registries_specifics(self, start_date: str | None , end_date: str | None , plate:str):
 
         start_date, end_date = self.__convert_datas(start_date, end_date)
-        if start_date >= end_date:
-                    raise DateError('start_date must be earlier than end_date')
+        self.__validate_date_range(start_date,end_date)
 
-        plate = self.__validate_plate_car(plate)
+        plate = self.__validate_car_plate(plate)
 
         regristries = self.__registry_repository.get_registries_specifics(start_date, end_date, plate)
         regristries = [registry.to_dict() for registry  in regristries]
@@ -142,15 +138,15 @@ class RegistriesManager(IRegistriesManager):
                 'regristries': regristries,
             }}
 
-    def __validate_plate_car(self, plate_car: str):
-        plate_car_formatted = plate_car.strip().replace("-", "")
+    def __validate_car_plate(self, car_plate: str):
+        car_plate_formatted = car_plate.strip().replace("-", "")
 
-        if len(plate_car_formatted) != 7:
-            raise ValueError("'plate-car' is invalid")
+        if len(car_plate_formatted) != 7:
+            raise ValueError("'car_plate' is invalid")
 
-        self.__validate_special_characters(plate_car, 'plate_car')
+        self.__validate_special_characters(car_plate, 'car_plate')
 
-        return plate_car_formatted.upper()
+        return car_plate_formatted.upper()
 
     def __validate_name_proprietor(self, proprietor: str):
 
@@ -175,6 +171,9 @@ class RegistriesManager(IRegistriesManager):
     def __calculate_payment(self, entry_time: datetime, exit_time: datetime) -> float:
 
         value_peer_hour = self.__configs_repository.get_config('value_peer_hour')
+
+        if not value_peer_hour:
+            raise NotFoundConfig('the hourly rate has not been set')
 
         if entry_time.tzinfo is None:
             entry_time = entry_time.replace(tzinfo=timezone.utc)
@@ -207,3 +206,10 @@ class RegistriesManager(IRegistriesManager):
             return (None, None)
         except Exception:
             raise DateError('start_date or end_date are not in the correct pattern (YYYY-MM-DD)')
+
+    def __validate_date_range(self, start_date, end_date):
+        if not (start_date and end_date):
+            return
+
+        if start_date > end_date:
+            raise DateError("start_date must be earlier than end_date")

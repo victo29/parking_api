@@ -1,5 +1,5 @@
-class NotFoundError(Exception):
+class ValueError(Exception):
 
     def __init__(self, message:str):
         super().__init__(message)
-        self.code = 404
+        self.code = 400

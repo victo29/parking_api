@@ -10,7 +10,7 @@ class RegistriesManager(ABC):
         pass
 
     @abstractmethod
-    def register_exit(self, plate_car: str):
+    def register_exit(self, car_plate: str):
         pass
 
     @abstractmethod

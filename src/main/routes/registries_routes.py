@@ -17,9 +17,9 @@ def register_entry(registry: Registry):
     return JSONResponse(status_code=response['status'], content=response['data'])
 
 @router.put('/exit')
-def register_exit(plate_car: str = Query(...)):
+def register_exit(car_plate: str = Query(...)):
     compose = registries_manager_composer()
-    response = compose.register_exit(plate_car)
+    response = compose.register_exit(car_plate)
     return JSONResponse(status_code=response['status'], content=response['data'])
 
 @router.delete('/delete/{id}')
@@ -53,10 +53,10 @@ def get_by_period(
 def search_registry(
     start_date: str | None = Query(default=None, description="Start date in YYYY-MM-DD"),
     end_date: str | None = Query(default=None, description="End date in YYYY-MM-DD"),
-    plate_car: str = ...
+    car_plate: str = ...
 ):
     compose = registries_manager_composer()
-    response = compose.get_registries_specifics(start_date, end_date,plate_car)
+    response = compose.get_registries_specifics(start_date, end_date,car_plate)
     return JSONResponse(status_code=response['status'], content=response['data'])
 
 @router.get('/opened')
