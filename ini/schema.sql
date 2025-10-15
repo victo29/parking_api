@@ -1,6 +1,6 @@
 CREATE TABLE registry (
     id SERIAL PRIMARY KEY,
-    plate_car VARCHAR(7) NOT NULL,
+    car_plate VARCHAR(7) NOT NULL,
     proprietor VARCHAR(255) NOT NULL,
     model VARCHAR(255),
     entry_time TIMESTAMP,
@@ -13,3 +13,7 @@ CREATE TABLE system_config (
     "key" VARCHAR(50) NOT NULL UNIQUE,
     value FLOAT4
 );
+
+INSERT INTO system_config ("key", value)
+VALUES
+    ('value_peer_hour', 5.0)
