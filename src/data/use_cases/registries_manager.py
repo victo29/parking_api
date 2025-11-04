@@ -1,4 +1,4 @@
-from datetime import datetime, date, timezone
+from datetime import datetime, timezone
 from typing import List, Dict
 import re
 
@@ -8,6 +8,10 @@ from src.infra.db.repositories.interfaces.system_config_repository import System
 from src.domains.models.registry import Registry
 from src.decorator.handle_exceptions import Exceptions
 from src.errors.types import NotFoundConfig, NotFoundError, ExistingRegistry, DateError, ValueError
+
+"""
+    UNDER UPDATE, APPLYING THE SINGLE RESPONSBILITY CONCEPTS OF SOLID
+"""
 
 class RegistriesManager(IRegistriesManager):
 
