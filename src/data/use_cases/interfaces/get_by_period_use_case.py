@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class GetByPeriod(ABC):
+class GetByPeriodUseCase(ABC):
 
     @abstractmethod
     def get(self, start_date: str, end_date: str):
